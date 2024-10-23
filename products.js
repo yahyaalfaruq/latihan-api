@@ -9,25 +9,21 @@ let products = [
     description: "Ini adalah produk contoh",
     category: "Elektronik",
   },
-];
+]; // menyimpan produk dalam array
+
 let nextProductId = 1;
 
+// merespons dengan JSON
 const respondWithJSON = (res, statusCode, data) => {
   res.writeHead(statusCode, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
 };
 
+// membuat server
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
   let { pathname } = parsedUrl;
   const method = req.method;
-
-  // Remove trailing slash if present
-  if (pathname.endsWith("/")) {
-    pathname = pathname.slice(0, -1);
-  }
-
-  console.log(`Request received: ${method} ${pathname}`);
 
   if (pathname === "/api/products" && method === "POST") {
     createProduct(req, res);
