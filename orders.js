@@ -1,115 +1,73 @@
-const http = require("http");
-const url = require("url");
+const MyExpress = require("express");
+const app = MyExpress();
 
-let orders = [
-  {
-    order_id: 1,
-    customer_name: "Nama Pelanggan",
-    product_id: 1,
-    quantity: 2,
-    total_price: 20000,
-    status: "pending",
-  },
-];
+app.use(MyExpress.json());
+let orders = [];
 
-let nextOrderId = 2;
+app.post("/api/orders", (req, res) => {
+  const newOrder = {
+    order_id: orders.length + 1,
+    customer_name: req.body.customer_name,
+    quantity: req.body.quantity,
+    total_price: req.body.total_price,
+    status: req.body.status,
+  };
+  orders.push(newOrder);
+  res.status(200).json({
+    message: "Pesanan berhasil ditambahkan",
+    order_id: newOrder.order_id,
+  });
+});
 
-const respondWithJSON = (res, statusCode, data) => {
-  res.writeHead(statusCode, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data));
-};
+app.get("/api/orders", (req, res) => {
+  res.status(200).json(orders);
+});
 
-const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  let { pathname } = parsedUrl;
-  const method = req.method;
-
-  if (pathname === "/api/orders" && method === "POST") {
-    createOrder(req, res);
-  } else if (pathname === "/api/orders" && method === "GET") {
-    readOrders(res);
-  } else if (pathname.startsWith("/api/orders/") && method === "GET") {
-    const id = pathname.split("/")[3];
-    readOrderById(res, id);
-  } else if (pathname.startsWith("/api/orders/") && method === "PUT") {
-    const id = pathname.split("/")[3];
-    updateOrder(req, res, id);
-  } else if (pathname.startsWith("/api/orders/") && method === "DELETE") {
-    const id = pathname.split("/")[3];
-    deleteOrder(res, id);
+app.get("/api/orders/:id", (req, res) => {
+  const orderId = parseInt(req.params.id);
+  const order = orders.find((p) => p.order_id === orderId);
+  if (order) {
+    res.status(200).json(order);
   } else {
-    res.statusCode = 404;
-    res.end("Not Found");
+    res.status(404).send("Pesanan tidak ditemukan");
   }
 });
 
-const createOrder = (req, res) => {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const { customer_name, product_id, quantity, total_price, status } = JSON.parse(body);
-    const newOrder = {
-      order_id: nextOrderId++,
-      customer_name,
-      product_id,
-      quantity,
-      total_price,
-      status,
-    };
-    orders.push(newOrder);
-    respondWithJSON(res, 201, {
-      message: "Pesanan berhasil ditambahkan",
-      order_id: newOrder.order_id,
-    });
-  });
-};
-
-const readOrders = (res) => {
-  respondWithJSON(res, 200, orders);
-};
-
-const readOrderById = (res, id) => {
-  const order = orders.find((o) => o.order_id === parseInt(id));
-  if (order) {
-    respondWithJSON(res, 200, order);
-  } else {
-    respondWithJSON(res, 404, { message: "Pesanan tidak ditemukan" });
-  }
-};
-
-const updateOrder = (req, res, id) => {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const { quantity, total_price, status } = JSON.parse(body);
-    const order = orders.find((o) => o.order_id === parseInt(id));
-    if (order) {
-      order.quantity = quantity;
-      order.total_price = total_price;
-      order.status = status;
-      respondWithJSON(res, 200, { message: "Pesanan berhasil diperbarui" });
-    } else {
-      respondWithJSON(res, 404, { message: "Pesanan tidak ditemukan" });
-    }
-  });
-};
-
-const deleteOrder = (res, id) => {
-  const orderIndex = orders.findIndex((o) => o.order_id === parseInt(id));
+app.put("/api/orders/:id", (req, res) => {
+  const orderId = parseInt(req.params.id);
+  const orderIndex = orders.findIndex((p) => p.order_id === orderId);
   if (orderIndex !== -1) {
-    orders.splice(orderIndex, 1);
-    respondWithJSON(res, 200, { message: "Pesanan berhasil dihapus" });
+    orders[orderIndex] = {
+      ...orders[orderIndex],
+      customer_name: req.body.customer_name,
+      quantity: req.body.quantity,
+      total_price: req.body.total_price,
+      status: req.body.status,
+    };
+    res.status(200).json({
+      message: "Pesanan berhasil diperbarui",
+      order_id: orders[orderIndex].employee_id,
+    });
   } else {
-    respondWithJSON(res, 404, { message: "Pesanan tidak ditemukan" });
+    res.status(404).send("Pesanan tidak ditemukan");
   }
-};
+});
 
-server.listen(3000, () => {
+app.delete("/api/orders/:id", (req, res) => {
+  const orderId = parseInt(req.params.id);
+  const orderIndex = orders.findIndex(p => p.order_id === orderId);
+  if (orderIndex !== -1) {
+    const deletedOrder = orders[orderIndex];
+    orders.splice(orderIndex, 1);
+    res.status(200).json({
+      message: "Pesanan berhasil dihapus",
+      order_id: deletedOrder.order_id
+    });
+  } else {
+    res.status(404).send("Pesanan tidak ditemukan");
+  }
+});
+
+app.listen(3000, () => {
   console.log("Orders API listening on http://localhost:3000");
 });

@@ -1,19 +1,10 @@
 const MyExpress = require("express");
-const app = new MyExpress();
+const app = MyExpress();
 
-app.use(MyExpress().json());
-let books = [
-  {
-    book_id: 1,
-    title: "Judul Buku",
-    author: "Penulis Buku",
-    genre: "Fiksi",
-    year: 2020,
-    price: 75000,
-    stock: 100,
-  },
-];
+app.use(MyExpress.json());
+let books = [];
 
+// Endpoint untuk menambahkan buku baru
 app.post("/api/books", (req, res) => {
   const newBook = {
     book_id: books.length + 1,
@@ -25,53 +16,58 @@ app.post("/api/books", (req, res) => {
     stock: req.body.stock,
   };
   books.push(newBook);
-  res.setHeader(200, { "Content-type": "application/json" });
-  res.end(JSON.stringify(newBook));
+  res.status(200).json(newBook);
 });
 
+// Endpoint untuk mendapatkan semua buku
 app.get("/api/books", (req, res) => {
-  res.setHeader(200, { "Content-type": "application/json" });
-  res.end(JSON.stringify(books));
+  res.status(200).json(books);
 });
 
+// Endpoint untuk mendapatkan buku berdasarkan ID
 app.get("/api/books/:id", (req, res) => {
   const bookId = parseInt(req.params.id);
-  const book = books.find((p) => p.id === bookId);
+  const book = books.find((p) => p.book_id === bookId); // Gunakan 'book_id' bukan 'id'
   if (book) {
-    res.setHeader("Content-type", "application/json");
-    res.end(JSON.stringify(book));
+    res.json(book);
   } else {
-    res.statusCode = 404;
-    res.end("book not found");
+    res.status(404).send("Book not found");
   }
 });
 
+// Endpoint untuk memperbarui buku berdasarkan ID
 app.put("/api/books/:id", (req, res) => {
   const bookId = parseInt(req.params.id);
-  const bookIndex = books.findIndex((p) => p.id === bookId);
+  const bookIndex = books.findIndex((p) => p.book_id === bookId);
   if (bookIndex !== -1) {
-    books[bookIndex].name = req.body.name;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(books[bookIndex]));
+    books[bookIndex] = {
+      ...books[bookIndex],
+      title: req.body.title,
+      author: req.body.author,
+      genre: req.body.genre,
+      year: req.body.year,
+      price: req.body.price,
+      stock: req.body.stock,
+    };
+    res.json(books[bookIndex]);
   } else {
-    res.statusCode = 404;
-    res.end("Book not found");
+    res.status(404).send("Book not found");
   }
 });
 
-app.delete('/api/books/:id', (req, res) => {
+// Endpoint untuk menghapus buku berdasarkan ID
+app.delete("/api/books/:id", (req, res) => {
   const bookId = parseInt(req.params.id);
-  const bookIndex = books.findIndex((p) => p.id === bookId);
+  const bookIndex = books.findIndex((p) => p.book_id === bookId); // Gunakan 'book_id' bukan 'id'
   if (bookIndex !== -1) {
-    const deletedBook = books.splice(bookIndex, 1);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(bookIndex[0]));
+    const deletedBook = books.splice(bookIndex, 1)[0];
+    res.json(deletedBook);
   } else {
-    res.statusCode = 404;
-    res.end('Book not found');
+    res.status(404).send("Book not found");
   }
 });
 
+// Menjalankan server pada port 3000
 app.listen(3000, () => {
   console.log("Books API listening on http://localhost:3000");
 });

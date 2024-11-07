@@ -1,4 +1,4 @@
-// gateways/products-gateway.js
+//products-gateway.js
 
 let products = [];
   

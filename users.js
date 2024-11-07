@@ -1,117 +1,75 @@
-const http = require("http");
-const url = require("url");
+const express = require("express");
+const app = express();
 
-let users = [
-  {
-    user_id: 1,
-    name: "Nama Pengguna",
-    email: "email@example.com",
-    phone: "08123456789",
-    role: "member",
-    status: "active",
-  },
-];
+let users = [];
 
-let nextUserId = 2;
+let nextUserId = 1;
 
-const respondWithJSON = (res, statusCode, data) => {
-  res.writeHead(statusCode, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data));
-};
+app.use(express.json()); // Middleware untuk parsing JSON
 
-const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  let { pathname } = parsedUrl;
-  const method = req.method;
+// Menambahkan pengguna baru
+app.post("/api/users", (req, res) => {
+  const { name, email, phone, role, status } = req.body;
+  const newUser = {
+    user_id: nextUserId++,
+    name,
+    email,
+    phone,
+    role,
+    status,
+  };
+  users.push(newUser);
+  res.status(201).json({
+    message: "Pengguna berhasil ditambahkan",
+    user_id: newUser.user_id,
+  });
+});
 
-  if (pathname === "/api/users" && method === "POST") {
-    createUser(req, res);
-  } else if (pathname === "/api/users" && method === "GET") {
-    readUsers(res);
-  } else if (pathname.startsWith("/api/users/") && method === "GET") {
-    const id = pathname.split("/")[3];
-    readUserById(res, id);
-  } else if (pathname.startsWith("/api/users/") && method === "PUT") {
-    const id = pathname.split("/")[3];
-    updateUser(req, res, id);
-  } else if (pathname.startsWith("/api/users/") && method === "DELETE") {
-    const id = pathname.split("/")[3];
-    deleteUser(res, id);
+// Mendapatkan semua pengguna
+app.get("/api/users", (req, res) => {
+  res.json(users);
+});
+
+// Mendapatkan pengguna berdasarkan ID
+app.get("/api/users/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const user = users.find((u) => u.user_id === id);
+  if (user) {
+    res.json(user);
   } else {
-    res.statusCode = 404;
-    res.end("Not Found");
+    res.status(404).json({ message: "Pengguna tidak ditemukan" });
   }
 });
 
-const createUser = (req, res) => {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const { name, email, phone, role, status } = JSON.parse(body);
-    const newUser = {
-      user_id: nextUserId++,
-      name,
-      email,
-      phone,
-      role,
-      status,
-    };
-    users.push(newUser);
-    respondWithJSON(res, 201, {
-      message: "Pengguna berhasil ditambahkan",
-      user_id: newUser.user_id,
-    });
-  });
-};
-
-const readUsers = (res) => {
-  respondWithJSON(res, 200, users);
-};
-
-const readUserById = (res, id) => {
-  const user = users.find((u) => u.user_id === parseInt(id));
+// Memperbarui pengguna berdasarkan ID
+app.put("/api/users/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const user = users.find((u) => u.user_id === id);
   if (user) {
-    respondWithJSON(res, 200, user);
+    const { name, email, phone, role, status } = req.body;
+    user.name = name;
+    user.email = email;
+    user.phone = phone;
+    user.role = role;
+    user.status = status;
+    res.json({ message: "Pengguna berhasil diperbarui" });
   } else {
-    respondWithJSON(res, 404, { message: "Pengguna tidak ditemukan" });
+    res.status(404).json({ message: "Pengguna tidak ditemukan" });
   }
-};
+});
 
-const updateUser = (req, res, id) => {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const { name, email, phone, role, status } = JSON.parse(body);
-    const user = users.find((u) => u.user_id === parseInt(id));
-    if (user) {
-      user.name = name;
-      user.email = email;
-      user.phone = phone;
-      user.role = role;
-      user.status = status;
-      respondWithJSON(res, 200, { message: "Pengguna berhasil diperbarui" });
-    } else {
-      respondWithJSON(res, 404, { message: "Pengguna tidak ditemukan" });
-    }
-  });
-};
-
-const deleteUser = (res, id) => {
-  const userIndex = users.findIndex((u) => u.user_id === parseInt(id));
+// Menghapus pengguna berdasarkan ID
+app.delete("/api/users/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const userIndex = users.findIndex((u) => u.user_id === id);
   if (userIndex !== -1) {
     users.splice(userIndex, 1);
-    respondWithJSON(res, 200, { message: "Pengguna berhasil dihapus" });
+    res.json({ message: "Pengguna berhasil dihapus" });
   } else {
-    respondWithJSON(res, 404, { message: "Pengguna tidak ditemukan" });
+    res.status(404).json({ message: "Pengguna tidak ditemukan" });
   }
-};
+});
 
-server.listen(3000, () => {
+app.listen(3000, () => {
   console.log("Users API listening on http://localhost:3000");
 });
