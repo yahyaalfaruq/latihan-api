@@ -2,13 +2,13 @@
 
 let products = [];
   
-  export const getDataProducts = () => products;
+module.exports.getDataProducts = () => products;
   
-  export const getDataProductById = (id) => products.find((p) => p.id === id);
+module.exports.getDataProductById = (id) => products.find((p) => p.id === id);
   
-  export const getIndexDataProductById = (id) => products.findIndex((p) => p.id === id);
+module.exports.getIndexDataProductById = (id) => products.findIndex((p) => p.id === id);
   
-  export const addDataNewProduct = (name, price, stock, description, category) => {
+module.exports.addDataNewProduct = (name, price, stock, description, category) => {
     const newProduct = {
       id: products.length + 1,
       name,
@@ -21,7 +21,7 @@ let products = [];
     return newProduct;
   };
   
-  export const updateDataProduct = (idx, name, price, stock, description, category) => {
+module.exports.updateDataProduct = (idx, name, price, stock, description, category) => {
     products[idx].name = name;
     products[idx].price = price;
     products[idx].stock = stock;
@@ -30,5 +30,5 @@ let products = [];
     return products[idx];
   };
   
-  export const deleteDataProduct = (idx) => products.splice(idx, 1)[0];
+module.exports.deleteDataProduct = (idx) => products.splice(idx, 1)[0];
   
