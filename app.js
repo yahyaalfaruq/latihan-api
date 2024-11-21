@@ -15,7 +15,7 @@ const {
   getUsers,
   updateUser,
   deleteUser,
-} = require("./actions/users-action.js");
+} = require("./src/users-action.js");
 
 const {
   createNewOrderAction,

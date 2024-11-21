@@ -1,3 +1,4 @@
+import express, { Request, Response } from 'express';
 const {
   getDataUsers,
   createUser,
@@ -6,7 +7,7 @@ const {
   deleteDataUser, // Pastikan fungsi ini ada di users-gateway
 } = require("../gateways/users-gateway");
 
-module.exports.addUser = (req, res) => {
+module.exports.addUser = (req: Request, res: Response) => {
   const { name, email, phone, role, status } = req.body;
   const newUser = createUser(name, email, phone, role, status);
   res.status(201).json({
@@ -15,11 +16,11 @@ module.exports.addUser = (req, res) => {
   });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req: Request, res: Response) => {
   res.json(getDataUsers());
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   const user = getDataUserById(id);
   if (user) {
@@ -29,7 +30,7 @@ module.exports.getUserById = (req, res) => {
   }
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   if (id) {
     const { name, email, phone, role, status } = req.body;
@@ -47,7 +48,7 @@ module.exports.updateUser = (req, res) => {
   }
 };
 
-module.exports.deleteUser = (req, res) => {
+module.exports.deleteUser = (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   const user = getDataUserById(id);
   if (user) {
